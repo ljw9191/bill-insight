@@ -1,0 +1,11 @@
+node_modules
+node_modules-old
+dist
+coverage
+tmp
+docs
+.git
+.gitignore
+*.log
+data/
+tmp-file-test/

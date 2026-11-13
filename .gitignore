@@ -1,0 +1,20 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+coverage/
+tmp/
+node_modules-old/
+*.log
+.DS_Store
+*.tsbuildinfo
+data/
+
+# 根目录备用 OCR 模型（实际使用的是 public/tessdata/chi_sim.traineddata）
+/chi_sim.traineddata
+/chi_sim_best.traineddata
+/eng_best.traineddata
+
+# 自动化测试残留的浏览器 profile
+tmp-recovery/

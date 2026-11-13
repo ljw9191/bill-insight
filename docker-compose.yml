@@ -1,0 +1,17 @@
+services:
+  bill-insight:
+    build: .
+    container_name: bill-insight
+    ports:
+      - "8080:8080"
+    volumes:
+      - bill_insight_data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  bill_insight_data:

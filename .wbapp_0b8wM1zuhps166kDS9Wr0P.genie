@@ -1,0 +1,5 @@
+appId: wbapp_0b8wM1zuhps166kDS9Wr0P
+name: 账单管家
+localDir: D:\workbudy\比赛
+appType: web
+entryHtml: dist/index.html
