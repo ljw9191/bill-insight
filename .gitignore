@@ -11,6 +11,9 @@ node_modules-old/
 *.tsbuildinfo
 data/
 
+# Tesseract 运行时缓存与度量脚本临时产物
+.tess-cache/
+
 # 根目录备用 OCR 模型（实际使用的是 public/tessdata/chi_sim.traineddata）
 /chi_sim.traineddata
 /chi_sim_best.traineddata

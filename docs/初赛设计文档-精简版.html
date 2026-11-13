@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>账单管家 Bill Insight · 初赛设计文档（精简版）</title>
+<style>
+  @page { size: A4; margin: 14mm 15mm 13mm 15mm; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { margin: 0; font-family: "Microsoft YaHei", "PingFang SC", "SimHei", sans-serif; font-size: 10.1pt; line-height: 1.58; color: #1d2521; }
+  h1 { font-size: 18.5pt; text-align: center; margin: 0 0 2mm; letter-spacing: .5pt; }
+  .sub { text-align: center; font-size: 9.6pt; color: #566; margin-bottom: 4.5mm; }
+  h2 { font-size: 12.3pt; color: #173f35; border-left: 3.6pt solid #173f35; padding-left: 2.6mm; margin: 4.4mm 0 2mm; page-break-after: avoid; }
+  h3 { font-size: 10.6pt; color: #22483c; margin: 2.8mm 0 1.2mm; page-break-after: avoid; }
+  .pageBreak { break-before: page; page-break-before: always; }
+  p { margin: 0 0 1.4mm; }
+  ul, ol { margin: 0 0 1.4mm 5mm; padding: 0; }
+  li { margin: .5mm 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 8.9pt; margin: 1.6mm 0 2.4mm; }
+  th, td { border: .5pt solid #c6d2c9; padding: 1.3mm 1.8mm; vertical-align: top; }
+  th { background: #eef3ea; text-align: left; font-weight: 600; }
+  tr { page-break-inside: avoid; }
+  .flowRow { display: flex; gap: 1.4mm; align-items: stretch; margin: 0; page-break-inside: avoid; }
+  .flowRow .arrow { align-self: center; color: #7d9487; font-size: 9.5pt; }
+  .step { border: .6pt solid #9fb6a8; background: #f6f9f4; border-radius: 2mm; padding: 1.5mm 1.6mm; font-size: 8.5pt; text-align: center; flex: 1 1 0; min-width: 18mm; }
+  .step b { display: block; font-size: 8.9pt; color: #173f35; }
+  .down { text-align: center; color: #7d9487; font-size: 9pt; line-height: 1.2; margin: .6mm 0; }
+  .arch { display: flex; flex-direction: column; gap: 1.2mm; margin: 1.8mm 0 2.2mm; page-break-inside: avoid; }
+  .layer { display: flex; gap: 1.2mm; align-items: stretch; }
+  .layer .tag { flex: 0 0 21mm; background: #173f35; color: #fff; font-size: 8.6pt; display: flex; align-items: center; justify-content: center; border-radius: 1.2mm; }
+  .layer .boxes { display: flex; gap: 1.2mm; flex: 1; flex-wrap: wrap; }
+  .box { flex: 1 1 0; min-width: 24mm; border: .6pt solid #c6d2c9; background: #fbfcfa; border-radius: 1.2mm; padding: 1.2mm 1.6mm; font-size: 8.5pt; }
+  .note { font-size: 8.6pt; color: #556; }
+  .kpi { display: flex; gap: 2mm; margin: 1.6mm 0 2.2mm; page-break-inside: avoid; }
+  .kpi div { flex: 1; border: .6pt solid #c6d2c9; border-radius: 1.4mm; padding: 1.6mm; text-align: center; background: #f7faf6; }
+  .kpi b { display: block; font-size: 12.5pt; color: #173f35; }
+  .kpi span { font-size: 8.1pt; color: #566; }
+  .code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 8.3pt; background: #f4f6f3; border: .5pt solid #d6ded7; border-radius: 1mm; padding: 1.6mm 2mm; white-space: pre-wrap; }
+  .shots { display: flex; flex-wrap: wrap; gap: 2mm; margin: 1.6mm 0 2mm; }
+  .shot { box-sizing: border-box; width: calc(50% - 1.2mm); border: .5pt solid #ccd5cd; border-radius: 1.2mm; overflow: hidden; background: #fff; page-break-inside: avoid; }
+  .shot img { width: 100%; max-height: 62mm; object-fit: contain; display: block; background: #fff; }
+  .shot span { display: block; font-size: 8pt; color: #556; padding: 1mm 1.6mm; border-top: .5pt solid #e2e8e2; }
+</style>
+</head>
+<body>
+
+<h1>账单管家 Bill Insight · 初赛设计文档（精简版）</h1>
+<div class="sub">智能应用创新开发大赛 ｜ 赛题 B：多源账单导入与个人财务管理 ｜ 2026-11-13</div>
+
+<h2>一、作品简介与赛题对应</h2>
+<p>账单管家面向个人账单“来源分散、格式混乱、隐私敏感、统计低效”的问题，把支付宝 / 微信 / 银行导出的 CSV、Excel 以及支付截图，统一解析为结构化账单，自动分类并允许人工修正；修正结果沉淀为个人关键词规则，反哺后续导入。系统提供月度收支、分类构成、每日节奏、近六月趋势与自动洞察，支持 Excel / HTML 报表导出与分享。</p>
+<p>作品不依赖支付平台私有接口、不依赖付费 OCR，图片不出浏览器；除云端模式外，提供无需账号、可离线、可 Docker 独立部署的本地加密模式，保证比赛纯净服务器上仍能完整跑通闭环。</p>
+
+<table>
+<thead><tr><th style="width:34%">赛题 B 功能要求</th><th style="width:44%">本作品实现</th><th>状态</th></tr></thead>
+<tr><td>截图 OCR 提取金额、时间、交易类型</td><td>浏览器内 Tesseract.js + 本地 <i>chi_sim</i> 模型，支持“支付详情”与“账单列表”两种版式；列表逐行识别并过滤汇总行</td><td>已实现</td></tr>
+<tr><td>CSV / Excel 上传与解析</td><td>SheetJS 解析 CSV/XLS/XLSX，自动定位表头、中文字段别名、UTF-8 与 GB18030 兼容</td><td>已实现</td></tr>
+<tr><td>自动分类，支持手动调整</td><td>11 类支出 / 6 类收入内置规则，输出置信度；明细页直接改分类并即时反哺</td><td>已实现</td></tr>
+<tr><td>按月报表，含饼图、柱状图、收入构成与支出趋势</td><td>分类环图（支出 / 收入可切换）、每日收支柱图、近六月支出趋势、月报导出</td><td>已实现</td></tr>
+<tr><td>按时间、类别查询，数据加密存储</td><td>月份 / 全部时间、收支方向、分类、关键词四维筛选；AES-256-GCM 字段级加密</td><td>已实现</td></tr>
+<tr><td>闭环：修正反馈优化分类</td><td>修正生成个人规则（权重 100、命中计数），下次导入优先命中，并记录反馈事件</td><td>已实现</td></tr>
+<tr><td>API 直连账单（可选加分项）</td><td>未接入（个人账单无开放接口）；保留 RPA / API 扩展说明，不声称已实现</td><td>未做</td></tr>
+</table>
+
+<h2>二、业务闭环设计</h2>
+<div class="flowRow">
+  <div class="step"><b>01 多源采集</b>CSV / Excel / 截图</div><span class="arrow">→</span>
+  <div class="step"><b>02 统一解析</b>日期·收支·金额</div><span class="arrow">→</span>
+  <div class="step"><b>03 规则分类</b>内置规则 + 置信度</div><span class="arrow">→</span>
+  <div class="step"><b>04 人工确认</b>预览·低置信度标记</div>
+</div>
+<div class="down">↓</div>
+<div class="flowRow">
+  <div class="step"><b>05 加密入账</b>去重·批次记录</div><span class="arrow">→</span>
+  <div class="step"><b>06 报表洞察</b>月报·导出·分享</div><span class="arrow">→</span>
+  <div class="step"><b>07 修正反馈</b>明细页改分类</div><span class="arrow">→</span>
+  <div class="step"><b>08 规则反哺</b>回流到 03</div>
+</div>
+<p>闭环可追踪：每次导入生成批次（总数 / 成功 / 异常 / 重复），每条账单保留分类来源（自动 / 规则 / 人工）与置信度，每次修正写入反馈事件，个人规则带权重与命中次数。异常处理遵循“不静默成功”原则：非法日期、空金额、重复账单都单独计数并提示，OCR 结果只进入可编辑预览，不直接入账。</p>
+
+<h2>三、系统架构</h2>
+<div class="arch">
+  <div class="layer"><div class="tag">展示层</div><div class="boxes"><div class="box">财务总览</div><div class="box">账单导入 / 预览</div><div class="box">账单明细</div><div class="box">学习规则</div><div class="box">智能月报</div></div></div>
+  <div class="layer"><div class="tag">领域层</div><div class="boxes"><div class="box">parser 解析与 OCR 后处理</div><div class="box">classifier 规则分类</div><div class="box">stats 统计与洞察</div><div class="box">export 报表导出</div></div></div>
+  <div class="layer"><div class="tag">安全层</div><div class="boxes"><div class="box">crypto：PBKDF2 + AES-GCM</div><div class="box">store：云端持久化</div><div class="box">localStore：本地保险箱</div></div></div>
+  <div class="layer"><div class="tag">存储层</div><div class="boxes"><div class="box">云数据库（5 表 + RLS）</div><div class="box">data/vault.json（密文 + 原子写入 + .bak）</div></div></div>
+</div>
+<table>
+<thead><tr><th style="width:16%">层</th><th style="width:26%">技术</th><th>选择理由</th></tr></thead>
+<tr><td>前端</td><td>React 19 + TypeScript + Vite</td><td>组件化、严格类型检查、构建快，页面按需加载</td></tr>
+<tr><td>解析 / 表格</td><td>SheetJS 0.20.3</td><td>一套代码处理 CSV、XLS、XLSX，浏览器端运行</td></tr>
+<tr><td>OCR</td><td>Tesseract.js 6 + 本地 chi_sim</td><td>图片不出浏览器，无付费接口，离线可用</td></tr>
+<tr><td>加密</td><td>PBKDF2-SHA256 + AES-256-GCM</td><td>浏览器原生认证加密，密钥不离开客户端</td></tr>
+<tr><td>服务 / 部署</td><td>Node HTTP + 多阶段 Docker</td><td>同源提供页面、保存接口与健康检查，命名卷持久化</td></tr>
+</table>
+
+<h2>四、核心功能与关键流程</h2>
+<h3>4.1 文件采集与解析</h3>
+<p>上传后先扫描前若干行，寻找同时包含日期与金额的表头，再按别名匹配商户、收支、备注列；金额兼容千分位、货币符号与括号负数；日期兼容 <span class="code">2026-11-03</span>、<span class="code">2026/11/03</span>、<span class="code">2026年11月3日</span> 与 Excel 序列。非法日期（如 2 月 30 日）直接拒绝，不静默滚动到 3 月；不可识别行记录行号但不阻塞其他有效行。</p>
+<h3>4.2 截图 OCR</h3>
+<p>图片在浏览器内灰度增强、二值化后交给本地模型识别；针对微信账单列表使用单块排版逐行解析，金额带正负号关联日期，自动过滤“支出 / 收入合计”汇总行；单笔支付详情优先识别“实付金额”，出现“查看退款详情”时不误判为收入。识别失败返回可操作错误，不返回空成功。</p>
+<h3>4.3 分类与反馈学习</h3>
+<p>分类顺序为：个人规则（按权重、关键词长度、命中次数排序）→ 内置关键词规则（置信度 0.72–0.95）→ 收支兜底（置信度 0.3，标记“待核对”）。用户在明细页修改分类后，系统清洗商户噪声词（扫码支付、快捷支付、订单等），提取稳定关键词生成个人规则；重复修改同一关键词时权重与命中次数递增，并写入反馈事件用于审计。</p>
+<h3>4.4 统计与报表</h3>
+<p>月度总收入 / 总支出 / 结余 / 结余率，分类构成环图（支出与收入可切换）、每日收支柱图、近六月支出趋势、自动洞察（结余率、最大支出项、环比变化），支持 Excel 明细、可打印 HTML 月报与摘要分享（分享内容不含商户与明细）。</p>
+
+<h2 class="pageBreak">五、核心接口定义</h2>
+<table>
+<thead><tr><th style="width:7%">方法</th><th style="width:17%">路径 / 函数</th><th style="width:22%">入参</th><th style="width:32%">返回</th><th>错误</th></tr></thead>
+<tr><td>GET</td><td><span class="code">/api/vault</span></td><td>可选头 <span class="code">X-Vault-Token</span></td><td><span class="code">{settings, payload}</span>，payload 为 <span class="code">{iv, data}</span></td><td>401 令牌缺失或错误</td></tr>
+<tr><td>PUT</td><td><span class="code">/api/vault</span></td><td>JSON 的 <span class="code">settings</span> / <span class="code">payload</span></td><td><span class="code">{saved: true}</span></td><td>415 非 JSON；400 非法；413 超 10 MB；401</td></tr>
+<tr><td>GET</td><td><span class="code">/health</span></td><td>无</td><td><span class="code">ok</span></td><td>—</td></tr>
+<tr><td>—</td><td><span class="code">BillStore.load()</span></td><td>无</td><td><span class="code">{transactions, rules, batches, feedback}</span></td><td>解密失败抛出</td></tr>
+<tr><td>—</td><td><span class="code">saveDrafts(drafts, batch)</span></td><td>草稿、批次元信息</td><td><span class="code">{saved, duplicates}</span></td><td>重复计入 duplicates</td></tr>
+<tr><td>—</td><td><span class="code">correctCategory(tx, category)</span></td><td>账单、目标分类</td><td>更新后的规则列表</td><td>草稿无 id 不反馈</td></tr>
+<tr><td>—</td><td><span class="code">deleteTransaction(id)</span></td><td>账单 id</td><td>无</td><td>需前端二次确认</td></tr>
+</table>
+<p class="note">云端模式通过 WorkBuddy Cloud SDK 访问托管数据库，不额外暴露 REST 接口；所有查询按 <span class="code">owner_id = auth.uid()</span> 行级隔离。</p>
+
+<h2>六、关键表结构</h2>
+<table>
+<thead><tr><th style="width:18%">表</th><th style="width:52%">关键字段</th><th>约束与用途</th></tr></thead>
+<tr><td>transactions</td><td>occurred_on, month, direction, category, original_category, category_source, confidence, payload_iv, payload_data, fingerprint, corrected, batch_id</td><td>正式账单；敏感载荷加密；月度统计与明细</td></tr>
+<tr><td>category_rules</td><td>keyword_iv, keyword_data, category, direction, weight, hit_count</td><td>个人学习规则；按权重排序优先命中</td></tr>
+<tr><td>import_batches</td><td>source, file_name, status, total_count, success_count, failed_count, error_summary</td><td>导入批次追踪与异常回放</td></tr>
+<tr><td>feedback_events</td><td>transaction_id, old_category, new_category, created_at</td><td>分类修正审计</td></tr>
+<tr><td>user_settings</td><td>salt, verifier_iv, verifier_data, owner_id</td><td>加密盐与口令校验</td></tr>
+</table>
+<p>关键约束：<span class="code">(owner_id, fingerprint)</span> 唯一，重复导入使用 upsert + ignoreDuplicates；<span class="code">month</span> 建索引支撑月度报表；所有业务表启用 RLS，策略为 <span class="code">owner_id = auth.uid()</span>，插入时 owner 由数据库默认值填充，更新同时使用 <span class="code">USING</span> 与 <span class="code">WITH CHECK</span>。本地模式复用同一数据结构，整体加密后写入 <span class="code">data/vault.json</span> 的 <span class="code">payload</span> 字段。</p>
+
+<h2>七、安全与隐私设计</h2>
+<ul>
+<li>PBKDF2-SHA256 迭代 150,000 次派生密钥，AES-256-GCM 认证加密，每条载荷独立 12 字节 IV；金额、商户、备注、OCR 原文均不落明文。</li>
+<li>本地保险箱由本机 Node 服务原子写入（临时文件 + rename，保留 <span class="code">.bak</span>），服务端不具备解密能力；接口默认只监听 <span class="code">127.0.0.1</span>。</li>
+<li>公网部署可设置 <span class="code">VAULT_TOKEN</span>，请求需携带 <span class="code">X-Vault-Token</span>，使用常量时间比较，防止保险箱被任意覆盖。</li>
+<li>上传限制 10 MB / 8 MB；页面不打印原始账单行与密钥；删除需二次确认；分享摘要不含明细。</li>
+<li>响应头包含 <span class="code">nosniff</span>、<span class="code">SAMEORIGIN</span>、<span class="code">Referrer-Policy</span> 与权限策略。</li>
+</ul>
+
+<h2>八、可行性分析</h2>
+<h3>8.1 技术可行性</h3>
+<p>全部能力基于成熟 Web 标准与稳定开源库：文件解析、OCR、加密、图表均在浏览器侧完成，无需自建 OCR 集群或 GPU；服务端只负责静态资源与密文落盘。当前已通过 TypeScript 严格模式构建、15 项单元测试、真实浏览器端到端验收（导入、OCR、修正反哺、跨端口解锁、密文校验）。</p>
+<h3>8.2 数据可行性</h3>
+<p>数据来源为参赛者本人支付宝 / 微信 / 银行 App 导出的 CSV、XLSX 文件与手机账单截图，均为用户可自行获取的合法数据，无需平台开放 API、无需第三方授权；仓库内置演示账单与样例截图用于复现。敏感数据只在本机加密保存，不上传任何第三方服务。</p>
+<h3>8.3 时间可行性</h3>
+<table>
+<thead><tr><th style="width:24%">阶段</th><th style="width:46%">主要工作</th><th>状态</th></tr></thead>
+<tr><td>11-13 → 11-14</td><td>仓库整理、收入构成图、部署访问令牌</td><td>已完成</td></tr>
+<tr><td>11-15 → 11-16</td><td>量化验证、容器化实测、精简文档</td><td>进行中</td></tr>
+<tr><td>11-17 → 11-20</td><td>材料定稿、自查与提交</td><td>计划</td></tr>
+<tr><td>11-21 → 12-20</td><td>补真实样本、演示视频（5–8 分钟）、答辩材料</td><td>计划</td></tr>
+</table>
+<h3>8.4 主要难点与应对预案</h3>
+<table>
+<thead><tr><th style="width:30%">难点</th><th>预案</th></tr></thead>
+<tr><td>不同平台账单版式差异大，OCR 版式漂移</td><td>只承诺“支付详情 + 列表”两类已验证版式；识别结果必须人工确认；后续以版式模板扩展，失败转手动录入</td></tr>
+<tr><td>金额等关键字段误识别</td><td>金额单独校验与高亮提示；允许逐字段编辑；实测金额误识别已在验证章节如实披露</td></tr>
+<tr><td>比赛纯净服务器无 WorkBuddy 云服务</td><td>默认使用本地模式，Docker 内零外部依赖运行；云端模式仅作为可选能力，不影响主流程</td></tr>
+<tr><td>口令丢失导致数据不可恢复</td><td>首次设置强提示；保留 <span class="code">vault.json.bak</span>；文档说明备份方式，不做“可找回”承诺</td></tr>
+</table>
+
+<h2>九、初步验证（实测）</h2>
+<h3>9.1 量化验证结果</h3>
+<div class="kpi">
+  <div><b>97.8%</b><span>OCR 字符准确率</span></div>
+  <div><b>80%</b><span>字段级准确率（4/5）</span></div>
+  <div><b>94.4%</b><span>分类命中与一致率</span></div>
+  <div><b>66.7%→100%</b><span>反哺前后一致率</span></div>
+</div>
+<table>
+<thead><tr><th style="width:20%">验证项</th><th style="width:52%">方法</th><th>结果</th></tr></thead>
+<tr><td>OCR 字符级</td><td>样例支付详情（1047×1318），与人工转录全文做编辑距离比对</td><td>CER 2.2%，准确率 97.8%；单张 389 ms</td></tr>
+<tr><td>OCR 字段级</td><td>日期 / 方向 / 金额 / 商户 / 分类逐字段核对</td><td>4/5 正确；金额 186.50 被识别为 186.20</td></tr>
+<tr><td>分类命中</td><td>18 条标注账单，调用真实分类入口</td><td>命中率 94.4%，一致率 94.4%；未命中项以 0.3 置信度暴露</td></tr>
+<tr><td>反馈反哺</td><td>3 条冷启动商户，修正后生成个人规则再分类</td><td>一致率 66.7% → 100%</td></tr>
+</table>
+<p class="note">复现命令 <span class="code">npx vite-node scripts/measure-metrics.ts</span>；完整数据与边界说明见 <span class="code">docs/初步验证数据.md</span>。OCR 金额误识别恰好验证了“识别结果必须人工确认”的设计前提，而不是隐藏误差。</p>
+
+<h3>9.2 界面与闭环证据</h3>
+<div class="shots">
+  <div class="shot"><img src="screenshots/02-dashboard.png" alt="财务总览"><span>财务总览：本月收支、结余率与支出分类构成</span></div>
+  <div class="shot"><img src="screenshots/05-import-preview.png" alt="导入预览"><span>导入预览：逐条置信度、可编辑入账</span></div>
+  <div class="shot"><img src="screenshots/06-reports.png" alt="智能月报"><span>智能月报：分类构成、趋势与导出</span></div>
+  <div class="shot"><img src="screenshots/04-rules.png" alt="学习规则"><span>学习规则：修正沉淀的规则与命中记录</span></div>
+</div>
+
+<h2>十、独立部署</h2>
+<div class="code">docker compose up -d --build
+# 访问 http://localhost:8080 ，选择“本地独立模式”
+# 公网部署建议：VAULT_TOKEN=change-me docker compose up -d --build
+# 健康检查：curl http://localhost:8080/health</div>
+<p>多阶段构建先在 Node 22 完成类型检查与生产构建，运行阶段由 <span class="code">server.mjs</span> 同源提供页面、密文保存接口与健康检查；账单密文持久化到命名卷 <span class="code">bill_insight_data</span>，容器重建不丢数据；默认本地模式不依赖数据库、外网 API 或云账号。备份：<span class="code">docker cp bill-insight:/app/data/vault.json ./vault-backup.json</span>。</p>
+<p class="note">当前状态：构建脚本、健康检查与镜像分层已完成，Node 生产方式与浏览器流程均已实测；容器内的启动与闭环验证正在进行，完成后在本节补充实测截图与耗时。</p>
+
+<h2>十一、AI 服务集成说明</h2>
+<table>
+<thead><tr><th style="width:22%">项目</th><th>说明</th></tr></thead>
+<tr><td>使用服务</td><td>Tesseract.js 6（开源 OCR 引擎）+ 项目内置 <i>chi_sim</i> 简体中文模型（2.4 MB）</td></tr>
+<tr><td>调用位置</td><td><span class="code">src/lib/parser.ts → recognizeScreenshot()</span>，在 Web Worker 中本地推理；分类调用 <span class="code">src/lib/classifier.ts → classifyBill()</span></td></tr>
+<tr><td>调用方式</td><td>纯本地推理，无 API Key、无网络请求、图片不上传；模型随应用发布，首次使用无需下载</td></tr>
+<tr><td>失败兜底</td><td>识别失败或结果为空时返回可操作错误，用户可改用手动录入或文件导入；低置信度分类显式标记“待核对”</td></tr>
+<tr><td>边界说明</td><td>分类器是可解释关键词规则 + 个人反馈规则，不使用大模型，不宣称“AI 自动记账”；如后续接入大模型，仅用于分类兜底与洞察生成，并保留人工确认</td></tr>
+</table>
+
+<h2>十二、决赛计划</h2>
+<table>
+<thead><tr><th style="width:24%">时间</th><th style="width:46%">任务</th><th>产出</th></tr></thead>
+<tr><td>11-21 → 11-30</td><td>补充真实账单样本（≥30 张截图 / ≥200 条流水），重跑准确率统计</td><td>更新的验证数据与误差分析</td></tr>
+<tr><td>12-01 → 12-10</td><td>容器化实测、性能与安全加固、RPA 扩展设计</td><td>部署截图、压测记录</td></tr>
+<tr><td>12-11 → 12-19</td><td>录制 5–8 分钟闭环演示视频、答辩材料</td><td>演示视频、答辩 PPT</td></tr>
+</table>
+
+</body>
+</html>
