@@ -190,6 +190,10 @@ input:focus, select:focus, textarea:focus { border-color: var(--olive); box-shad
 .section-heading h2 { font-size: 18px; display: flex; align-items: center; gap: 7px; }
 .section-heading p { color: var(--muted); font-size: 10px; margin-top: 5px; }
 .section-heading h2 svg { color: var(--olive); width: 17px; }
+.heading-tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.chart-tabs { display: inline-flex; background: var(--paper-deep); border-radius: 999px; padding: 3px; gap: 2px; }
+.chart-tabs button { border: 0; background: transparent; padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--muted); cursor: pointer; transition: background .16s, color .16s; }
+.chart-tabs button.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(23, 63, 53, .12); }
 
 /* Dashboard */
 .dashboard-heading { margin-bottom: 26px; }

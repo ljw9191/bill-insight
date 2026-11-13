@@ -72,5 +72,6 @@ export interface MonthlyStats {
   balance: number
   count: number
   categoryExpenses: { category: string; amount: number }[]
+  categoryIncomes: { category: string; amount: number }[]
   daily: { day: string; income: number; expense: number }[]
 }

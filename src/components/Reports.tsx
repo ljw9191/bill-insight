@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ArrowDownToLine, FileText, Printer, Share2, Sparkles, TrendingUp } from 'lucide-react'
-import { DailyBar, ExpenseDonut, TrendBar } from './Charts'
+import { CategoryDonut, DailyBar, TrendBar } from './Charts'
 import { getInsights, getMonthlyStats } from '../lib/stats'
 import { exportMonthlyReport, exportTransactions } from '../lib/export'
 import type { Transaction } from '../lib/types'
@@ -11,7 +11,9 @@ export function Reports({ transactions, month, onMonth, onToast }: { transaction
   const stats = getMonthlyStats(transactions, month)
   const insights = getInsights(transactions, month)
   const [shareOpen, setShareOpen] = useState(false)
+  const [chartDirection, setChartDirection] = useState<'expense' | 'income'>('expense')
   const topCategories = stats.categoryExpenses.slice(0, 8)
+  const topIncomes = stats.categoryIncomes.slice(0, 8)
   const savingRate = stats.income > 0 ? stats.balance / stats.income * 100 : 0
 
   async function shareReport() {
@@ -31,7 +33,7 @@ export function Reports({ transactions, month, onMonth, onToast }: { transaction
     <section className="report-hero"><div className="report-hero-main"><span className="eyebrow light">MONTHLY REPORT · {month}</span><h2>{stats.count ? <>本月共记录 <em>{stats.count}</em> 笔账单</> : '这个月还没有账单'}</h2><div className="hero-numbers"><div><span>总收入</span><strong>{money(stats.income)}</strong></div><div><span>总支出</span><strong>{money(stats.expense)}</strong></div><div><span>结余</span><strong>{money(stats.balance)}</strong></div></div><div className="report-hero-foot"><span><TrendingUp size={15} />结余率 {stats.income ? `${savingRate.toFixed(1)}%` : '—'}</span><span>自动分类率 {transactions.length ? Math.round(transactions.filter(item => item.categorySource !== 'manual').length / transactions.length * 100) : 0}%</span></div></div><div className="report-actions"><button onClick={() => exportMonthlyReport(transactions, month)}><FileText /><span><b>导出月报</b><small>HTML 可打印为 PDF</small></span></button><button onClick={() => { exportTransactions(transactions, month); onToast('Excel 明细已开始下载') }}><ArrowDownToLine /><span><b>导出明细</b><small>XLSX 格式</small></span></button><button onClick={() => window.print()}><Printer /><span><b>直接打印</b><small>当前页面</small></span></button></div></section>
 
     <div className="reports-grid">
-      <section className="card chart-card large-chart-card"><div className="section-heading"><div><h2>支出分类占比</h2><p>找到本月最大的消费去向</p></div><span className="tag">{topCategories.length} 个分类</span></div><ExpenseDonut stats={stats} large /></section>
+      <section className="card chart-card large-chart-card"><div className="section-heading"><div><h2>{chartDirection === 'expense' ? '支出分类占比' : '收入构成占比'}</h2><p>{chartDirection === 'expense' ? '找到本月最大的消费去向' : '看清本月收入由哪些部分构成'}</p></div><div className="heading-tools"><div className="chart-tabs" role="tablist" aria-label="收支分类切换"><button role="tab" aria-selected={chartDirection === 'expense'} className={chartDirection === 'expense' ? 'active' : ''} onClick={() => setChartDirection('expense')}>支出</button><button role="tab" aria-selected={chartDirection === 'income'} className={chartDirection === 'income' ? 'active' : ''} onClick={() => setChartDirection('income')}>收入</button></div><span className="tag">{chartDirection === 'expense' ? `${topCategories.length} 个支出分类` : `${topIncomes.length} 个收入分类`}</span></div></div><CategoryDonut stats={stats} direction={chartDirection} large /></section>
       <section className="card analysis-card"><div className="section-heading"><div><h2><Sparkles size={18} />本月关键洞察</h2><p>从数据中提炼可行动建议</p></div></div><div className="analysis-list">{insights.map((item, index) => <div className={`analysis-item tone-${item.tone}`} key={item.title}><i>{index + 1}</i><div><b>{item.title}</b><p>{item.detail}</p></div></div>)}</div><div className="report-note">统计仅基于已入账数据；退款计入收入，重复账单已自动排除。</div></section>
     </div>
 

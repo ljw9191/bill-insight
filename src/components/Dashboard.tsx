@@ -1,5 +1,6 @@
+import { useState } from 'react'
 import { ArrowDownLeft, ArrowUpRight, ChevronRight, ReceiptText, Sparkles, Target, TrendingDown, TrendingUp, Wallet } from 'lucide-react'
-import { DailyBar, ExpenseDonut } from './Charts'
+import { CategoryDonut, DailyBar } from './Charts'
 import { getInsights, getMonthlyStats } from '../lib/stats'
 import type { FeedbackEvent, ImportBatch, Transaction } from '../lib/types'
 
@@ -16,6 +17,7 @@ interface Props {
 const money = (value: number) => `¥${value.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
 export function Dashboard({ transactions, batches, feedback, month, onMonth, onNavigate, onAdd }: Props) {
+  const [chartDirection, setChartDirection] = useState<'expense' | 'income'>('expense')
   const stats = getMonthlyStats(transactions, month)
   const recent = transactions.filter(item => item.occurredOn.startsWith(month)).slice(0, 6)
   const insights = getInsights(transactions, month)
@@ -39,7 +41,7 @@ export function Dashboard({ transactions, batches, feedback, month, onMonth, onN
     </section>
 
     <div className="dashboard-main-grid">
-      <section className="card chart-card"><div className="section-heading"><div><h2>支出去了哪里</h2><p>按分类统计本月支出</p></div><button className="text-link" onClick={() => onNavigate('reports')}>查看报表<ChevronRight size={15} /></button></div><ExpenseDonut stats={stats} /></section>
+      <section className="card chart-card"><div className="section-heading"><div><h2>{chartDirection === 'expense' ? '支出去了哪里' : '收入从哪里来'}</h2><p>{chartDirection === 'expense' ? '按分类统计本月支出' : '按分类统计本月收入构成'}</p></div><div className="heading-tools"><div className="chart-tabs" role="tablist" aria-label="收支分类切换"><button role="tab" aria-selected={chartDirection === 'expense'} className={chartDirection === 'expense' ? 'active' : ''} onClick={() => setChartDirection('expense')}>支出</button><button role="tab" aria-selected={chartDirection === 'income'} className={chartDirection === 'income' ? 'active' : ''} onClick={() => setChartDirection('income')}>收入</button></div><button className="text-link" onClick={() => onNavigate('reports')}>查看报表<ChevronRight size={15} /></button></div></div><CategoryDonut stats={stats} direction={chartDirection} /></section>
       <section className="card chart-card"><div className="section-heading"><div><h2>每日收支节奏</h2><p>看见消费高峰，提前做好安排</p></div><span className="legend"><i className="expense-dot" />支出<i className="income-dot" />收入</span></div><DailyBar stats={stats} /></section>
     </div>
 

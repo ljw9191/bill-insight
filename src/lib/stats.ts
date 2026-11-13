@@ -5,10 +5,12 @@ export function getMonthlyStats(transactions: Transaction[], month: string): Mon
   const income = rows.filter(item => item.direction === 'income').reduce((sum, item) => sum + item.amount, 0)
   const expense = rows.filter(item => item.direction === 'expense').reduce((sum, item) => sum + item.amount, 0)
   const categoryMap = new Map<string, number>()
+  const incomeMap = new Map<string, number>()
   const dailyMap = new Map<string, { income: number; expense: number }>()
 
   for (const item of rows) {
     if (item.direction === 'expense') categoryMap.set(item.category, (categoryMap.get(item.category) ?? 0) + item.amount)
+    else incomeMap.set(item.category, (incomeMap.get(item.category) ?? 0) + item.amount)
     const day = item.occurredOn.slice(8, 10)
     const current = dailyMap.get(day) ?? { income: 0, expense: 0 }
     current[item.direction] += item.amount
@@ -21,6 +23,9 @@ export function getMonthlyStats(transactions: Transaction[], month: string): Mon
     balance: income - expense,
     count: rows.length,
     categoryExpenses: [...categoryMap.entries()]
+      .map(([category, amount]) => ({ category, amount }))
+      .sort((a, b) => b.amount - a.amount),
+    categoryIncomes: [...incomeMap.entries()]
       .map(([category, amount]) => ({ category, amount }))
       .sort((a, b) => b.amount - a.amount),
     daily: [...dailyMap.entries()].map(([day, values]) => ({ day, ...values })).sort((a, b) => a.day.localeCompare(b.day)),

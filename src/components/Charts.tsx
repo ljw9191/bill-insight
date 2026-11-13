@@ -5,13 +5,24 @@ import type { MonthlyStats } from '../lib/types'
 ChartJS.register(ArcElement, BarElement, CategoryScale, Legend, LinearScale, Tooltip)
 
 const COLORS = ['#173f35', '#769b56', '#d8e78d', '#df866b', '#e8b45b', '#7a9da0', '#b5a2c7', '#9cb8a1', '#d2a397', '#bdc4b8', '#e3ddd0']
+const INCOME_COLORS = ['#2f5d7c', '#6f9d7a', '#e0c46a', '#c98b6d', '#8fa7b8', '#a9bd8f', '#d5b3a1', '#7f8f9c', '#c3d0a8', '#b6a9c6', '#dfd9c9']
+
+export function CategoryDonut({ stats, direction = 'expense', large = false }: { stats: MonthlyStats; direction?: 'expense' | 'income'; large?: boolean }) {
+  const isIncome = direction === 'income'
+  const data = (isIncome ? stats.categoryIncomes : stats.categoryExpenses).slice(0, 8)
+  const total = isIncome ? stats.income : stats.expense
+  return <div className={large ? 'chart chart-large' : 'chart'}>
+    {data.length ? <Doughnut data={{ labels: data.map(item => item.category), datasets: [{ data: data.map(item => item.amount), backgroundColor: isIncome ? INCOME_COLORS : COLORS, borderWidth: 0, hoverOffset: 6 }] }} options={{ maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10, padding: 14, color: '#63736d', font: { size: 12 } } }, tooltip: { callbacks: { label: context => ` ${context.label}  ¥${Number(context.raw).toFixed(2)}` } } } }} /> : <EmptyChart text={isIncome ? '本月还没有收入账单' : '导入账单后生成可视化'} />}
+    {data.length > 0 && <div className="donut-center"><strong>¥{total.toLocaleString('zh-CN', { maximumFractionDigits: 0 })}</strong><span>{isIncome ? '总收入' : '总支出'}</span></div>}
+  </div>
+}
 
 export function ExpenseDonut({ stats, large = false }: { stats: MonthlyStats; large?: boolean }) {
-  const data = stats.categoryExpenses.slice(0, 8)
-  return <div className={large ? 'chart chart-large' : 'chart'}>
-    {data.length ? <Doughnut data={{ labels: data.map(item => item.category), datasets: [{ data: data.map(item => item.amount), backgroundColor: COLORS, borderWidth: 0, hoverOffset: 6 }] }} options={{ maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10, padding: 14, color: '#63736d', font: { size: 12 } } }, tooltip: { callbacks: { label: context => ` ${context.label}  ¥${Number(context.raw).toFixed(2)}` } } } }} /> : <EmptyChart />}
-    {data.length > 0 && <div className="donut-center"><strong>¥{stats.expense.toLocaleString('zh-CN', { maximumFractionDigits: 0 })}</strong><span>总支出</span></div>}
-  </div>
+  return <CategoryDonut stats={stats} direction="expense" large={large} />
+}
+
+export function IncomeDonut({ stats, large = false }: { stats: MonthlyStats; large?: boolean }) {
+  return <CategoryDonut stats={stats} direction="income" large={large} />
 }
 
 export function DailyBar({ stats }: { stats: MonthlyStats }) {
@@ -28,6 +39,6 @@ export function TrendBar({ transactions, month }: { transactions: import('../lib
   return <div className="chart chart-large"><Bar data={{ labels: months.map(item => `${Number(item.slice(5))}月`), datasets: [{ label: '月支出', data: values, backgroundColor: values.map((_, index) => index === 5 ? '#df866b' : '#cbd9bd'), borderRadius: 8, maxBarThickness: 42 }] }} options={{ maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: context => ` 支出 ¥${Number(context.raw).toFixed(2)}` } } }, scales: { x: { grid: { display: false } }, y: { border: { display: false }, grid: { color: '#edf0e9' }, ticks: { callback: value => `¥${value}` } } } }} /></div>
 }
 
-function EmptyChart() {
-  return <div className="empty-chart">导入账单后生成可视化</div>
+function EmptyChart({ text = '导入账单后生成可视化' }: { text?: string }) {
+  return <div className="empty-chart">{text}</div>
 }
