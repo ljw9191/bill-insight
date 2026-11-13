@@ -9,7 +9,8 @@ const dist = path.join(root, 'dist')
 const host = process.env.HOST || '127.0.0.1'
 const port = Number(process.env.PORT || 4173)
 const dataDir = path.resolve(process.env.DATA_DIR || path.join(root, 'data'))
-const vaultHandler = createVaultHandler(dataDir)
+const vaultToken = String(process.env.VAULT_TOKEN || '')
+const vaultHandler = createVaultHandler(dataDir, { token: vaultToken })
 
 const mime = {
   '.html': 'text/html; charset=utf-8',
@@ -93,6 +94,7 @@ const server = http.createServer(async (req, res) => {
 server.listen(port, host, () => {
   console.log(`Bill Insight: http://${host}:${port}`)
   console.log(`Vault file: ${path.join(dataDir, 'vault.json')}`)
+  console.log(vaultToken ? 'Vault protection: 已启用访问令牌（VAULT_TOKEN）' : 'Vault protection: 未启用访问令牌，仅建议在 127.0.0.1 本机使用')
 })
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

@@ -6,6 +6,9 @@ services:
       - "8080:8080"
     volumes:
       - bill_insight_data:/app/data
+    environment:
+      # 公网部署建议设置访问令牌，例如 VAULT_TOKEN=change-me
+      - VAULT_TOKEN=${VAULT_TOKEN:-}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8080/health"]

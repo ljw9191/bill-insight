@@ -54,6 +54,14 @@ docker compose up -d --build
 docker cp bill-insight:/app/data/vault.json ./vault-backup.json
 ```
 
+公网部署请设置访问令牌，避免保险箱接口被任意读写：
+
+```bash
+VAULT_TOKEN=change-me docker compose up -d --build
+```
+
+解锁页会出现“部署访问令牌”输入框，填入同一个值即可；未设置 `VAULT_TOKEN` 时不校验令牌，只建议在 `127.0.0.1` 本机使用。
+
 不使用 Compose 时：
 
 ```bash

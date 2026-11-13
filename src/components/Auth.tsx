@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ArrowRight, Check, FileSpreadsheet, HardDrive, LockKeyhole, ScanLine, ShieldCheck, Sparkles } from 'lucide-react'
 import { cloud } from '../lib/cloud'
+import { getVaultToken, setVaultToken } from '../lib/localDb'
 
 export function AuthScreen({ onDemo, onLocal, error: externalError }: { onDemo: () => void; onLocal: () => void; error?: string }) {
   const [loading, setLoading] = useState(false)
@@ -58,6 +59,7 @@ export function AuthScreen({ onDemo, onLocal, error: externalError }: { onDemo: 
 export function EncryptionGate({ hasSettings, onUnlock, onExit, demo = false }: { hasSettings: boolean; onUnlock: (password: string) => Promise<void>; onExit: () => void; demo?: boolean }) {
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [token, setToken] = useState(getVaultToken())
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -65,6 +67,7 @@ export function EncryptionGate({ hasSettings, onUnlock, onExit, demo = false }: 
     event.preventDefault()
     if (password.length < 8) return setError('加密口令至少需要 8 位')
     if (!hasSettings && password !== confirm) return setError('两次输入的口令不一致')
+    setVaultToken(token.trim())
     setLoading(true)
     setError('')
     try { await onUnlock(password) } catch { setError('口令不正确或加密设置不可用，请重试') } finally { setLoading(false) }
@@ -77,6 +80,8 @@ export function EncryptionGate({ hasSettings, onUnlock, onExit, demo = false }: 
     <p>{hasSettings ? '输入口令后，账单才会在浏览器中解密。' : '口令不会上传。忘记口令将无法恢复已加密数据，请妥善保管。'}</p>
     <label className="field"><span>加密口令</span><input autoFocus type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="至少 8 位" autoComplete={hasSettings ? 'current-password' : 'new-password'} /></label>
     {!hasSettings && <label className="field"><span>确认口令</span><input type="password" value={confirm} onChange={event => setConfirm(event.target.value)} placeholder="再次输入" autoComplete="new-password" /></label>}
+    <label className="field"><span>部署访问令牌（可选）</span><input value={token} onChange={event => setToken(event.target.value)} placeholder="服务端设置了 VAULT_TOKEN 时填写" autoComplete="off" /></label>
+    <p className="demo-note">本机开发可留空；Docker 公网部署建议启动时设置 VAULT_TOKEN，并在此填入同一令牌。</p>
     {error && <div className="form-error">{error}</div>}
     <button className="button button-primary button-full" disabled={loading}>{loading ? '正在安全解锁…' : hasSettings ? '解锁并进入' : '创建保险箱并进入'}<ArrowRight size={17} /></button>
     <button type="button" className="text-button" onClick={onExit}>返回登录页</button>

@@ -1,7 +1,15 @@
+import crypto from 'node:crypto'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
 const MAX_BODY_BYTES = 10 * 1024 * 1024
+
+function tokenMatches(expected, provided) {
+  const a = Buffer.from(expected)
+  const b = Buffer.from(String(provided ?? ''))
+  if (a.length !== b.length) return false
+  return crypto.timingSafeEqual(a, b)
+}
 
 function sendJson(res, status, body) {
   res.statusCode = status
@@ -48,10 +56,15 @@ async function readBody(req) {
   return Buffer.concat(chunks).toString('utf8')
 }
 
-export function createVaultHandler(dataDir) {
+export function createVaultHandler(dataDir, options = {}) {
   const file = path.join(dataDir, 'vault.json')
+  const token = String(options.token ?? '')
   return async function vaultHandler(req, res) {
     try {
+      if (token && !tokenMatches(token, req.headers['x-vault-token'])) {
+        sendJson(res, 401, { error: 'Vault token required' })
+        return
+      }
       if (req.method === 'GET') {
         sendJson(res, 200, await readVault(file))
         return
