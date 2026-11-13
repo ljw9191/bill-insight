@@ -159,7 +159,9 @@ function cleanOcrMerchant(value: string) {
     .filter(index => index > 0 && index <= 4)
     .sort((a, b) => a - b)[0]
   if (boundary !== undefined) merchant = merchant.slice(boundary)
-  return merchant.trim()
+  // 最后一步：合并 OCR 在汉字间插入的空格（"海底 捞 火 锅"→"海底捞火锅"）。
+  // 必须放在前缀剥离与边界裁剪之后，否则 "U街电 街电充电桩" 会先粘连、剥不掉前缀。
+  return merchant.replace(/(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])/g, '').trim()
 }
 
 interface OcrListRecord {
@@ -279,7 +281,9 @@ export async function parseOcrText(text: string, rules: CategoryRule[] = [], fal
 
   const direction = inferOcrDirection(text)
   const merchantLine = lines.find(line => /商户|交易对方|收款方|付款方|商家/.test(line))
-  let merchant = merchantLine?.replace(/.*(?:商户全称|商户名称|交易对方|收款方|付款方|商家)\s*[：:]?\s*/, '').trim() ?? ''
+  // 先归一 OCR 插入的汉字间空格（"商户 全 称"→"商户全称"），前缀剥离与清洗才能命中
+  let merchant = merchantLine?.replace(/(?<=[\u4e00-\u9fa5])\s+(?=[\u4e00-\u9fa5])/g, '')
+    .replace(/.*(?:商户全称|商户名称|交易对方|收款方|付款方|商家)\s*[：:]?\s*/, '').trim() ?? ''
   if (!merchant) merchant = lines.find(line => !/金额|交易|支付|时间|日期|订单|账单|¥|￥|\d+\.\d{2}/.test(line) && /[\u4e00-\u9fa5A-Za-z]/.test(line)) ?? 'OCR 未识别商户'
   merchant = cleanOcrMerchant(merchant)
 
@@ -322,11 +326,11 @@ async function enhanceScreenshot(file: File) {
   context.fillRect(0, 0, canvas.width, canvas.height)
   context.imageSmoothingEnabled = true
   context.imageSmoothingQuality = 'high'
-  context.filter = 'grayscale(1) contrast(1.3)'
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
 
-  // Light gray timestamps are common in bill lists; thresholding makes them visible to OCR.
+  // 灰度（YIQ 权重）+ 二值化（阈值 200）：与 scripts/gen_variants.py 完全同一套像素算法，
+  // 保证浏览器预处理与量化验证脚本可对照；曾用 CSS contrast 滤镜，实测会把金额笔画破坏（5→2）。
   const image = context.getImageData(0, 0, canvas.width, canvas.height)
   for (let index = 0; index < image.data.length; index += 4) {
     const gray = image.data[index] * 0.299 + image.data[index + 1] * 0.587 + image.data[index + 2] * 0.114

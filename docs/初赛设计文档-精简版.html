@@ -144,7 +144,7 @@
 <h3>8.3 时间可行性</h3>
 <table>
 <thead><tr><th style="width:24%">阶段</th><th style="width:46%">主要工作</th><th>状态</th></tr></thead>
-<tr><td>11-13</td><td>仓库与基线提交、收入构成图、接口访问令牌、量化验证、精简文档初稿</td><td>已完成</td></tr>
+<tr><td>11-13</td><td>仓库与基线提交、收入构成图、接口访问令牌、量化验证、OCR 消融实验与优化、精简文档初稿</td><td>已完成</td></tr>
 <tr><td>11-14 → 11-16</td><td>容器化实测、文档定稿与证据补齐</td><td>进行中</td></tr>
 <tr><td>11-17 → 11-20</td><td>材料定稿、自查与提交</td><td>计划</td></tr>
 <tr><td>11-21 → 12-20</td><td>补真实样本、演示视频（5–8 分钟）、答辩材料</td><td>计划</td></tr>
@@ -161,19 +161,19 @@
 <h2>九、初步验证（实测）</h2>
 <h3>9.1 量化验证结果</h3>
 <div class="kpi">
-  <div><b>97.8%</b><span>OCR 字符准确率</span></div>
-  <div><b>80%</b><span>字段级准确率（4/5）</span></div>
+  <div><b>98.9%</b><span>OCR 字符准确率</span></div>
+  <div><b>100%</b><span>字段级准确率（5/5）</span></div>
   <div><b>94.4%</b><span>分类命中与一致率</span></div>
   <div><b>66.7%→100%</b><span>反哺前后一致率</span></div>
 </div>
 <table>
 <thead><tr><th style="width:20%">验证项</th><th style="width:52%">方法</th><th>结果</th></tr></thead>
-<tr><td>OCR 字符级</td><td>样例支付详情（1047×1318），与人工转录全文做编辑距离比对</td><td>CER 2.2%，准确率 97.8%；单张 389 ms</td></tr>
-<tr><td>OCR 字段级</td><td>日期 / 方向 / 金额 / 商户 / 分类逐字段核对</td><td>4/5 正确；金额 186.50 被识别为 186.20</td></tr>
+<tr><td>OCR 字符级</td><td>样例支付详情经浏览器同款预处理（灰度+二值化），与人工转录全文做编辑距离比对</td><td>CER 1.1%，准确率 98.9%；单张 485 ms</td></tr>
+<tr><td>OCR 字段级</td><td>日期 / 方向 / 金额 / 商户 / 分类逐字段核对</td><td>5/5 正确（优化前金额误识别 186.50→186.20，经消融实验定位后修复）</td></tr>
 <tr><td>分类命中</td><td>18 条标注账单，调用真实分类入口</td><td>命中率 94.4%，一致率 94.4%；未命中项以 0.3 置信度暴露</td></tr>
 <tr><td>反馈反哺</td><td>3 条冷启动商户，修正后生成个人规则再分类</td><td>一致率 66.7% → 100%</td></tr>
 </table>
-<p class="note">复现命令 <span class="code">npx vite-node scripts/measure-metrics.ts</span>；完整数据与边界说明见 <span class="code">docs/初步验证数据.md</span>。OCR 金额误识别恰好验证了“识别结果必须人工确认”的设计前提，而不是隐藏误差。</p>
+<p class="note">复现命令 <span class="code">npx vite-node scripts/measure-metrics.ts</span>；完整数据、消融实验与边界说明见 <span class="code">docs/初步验证数据.md</span>。优化前金额误识别（186.50→186.20）经 16 组消融实验定位为预处理滤镜与快速模型问题，更换 best 模型并对齐预处理算法后修复——误差的发现、披露与修复过程全部可复现。</p>
 
 <h3>9.2 界面与闭环证据</h3>
 <div class="shots">
@@ -194,7 +194,7 @@
 <h2>十一、AI 服务集成说明</h2>
 <table>
 <thead><tr><th style="width:22%">项目</th><th>说明</th></tr></thead>
-<tr><td>使用服务</td><td>Tesseract.js 6（开源 OCR 引擎）+ 项目内置 <i>chi_sim</i> 简体中文模型（2.4 MB）</td></tr>
+<tr><td>使用服务</td><td>Tesseract.js 6（开源 OCR 引擎）+ 项目内置 <i>chi_sim</i> 简体中文 best 模型（12.5 MB）</td></tr>
 <tr><td>调用位置</td><td><span class="code">src/lib/parser.ts → recognizeScreenshot()</span>，在 Web Worker 中本地推理；分类调用 <span class="code">src/lib/classifier.ts → classifyBill()</span></td></tr>
 <tr><td>调用方式</td><td>纯本地推理，无 API Key、无网络请求、图片不上传；模型随应用发布，首次使用无需下载</td></tr>
 <tr><td>失败兜底</td><td>识别失败或结果为空时返回可操作错误，用户可改用手动录入或文件导入；低置信度分类显式标记“待核对”</td></tr>

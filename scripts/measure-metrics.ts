@@ -105,7 +105,9 @@ async function main() {
     logger: () => {},
   })
   const startedAt = Date.now()
-  const image = path.join(root, 'public/samples/wechat-ocr-demo.png')
+  // 与浏览器 enhanceScreenshot 同一算法预处理后的样例图（scripts/gen_variants.py 生成），
+  // 测量的是浏览器实际输入给 Tesseract 的图，而不是原始截图。
+  const image = path.join(root, 'public/samples/wechat-ocr-demo-enhanced.png')
   const { data } = await worker.recognize(image)
   const elapsedMs = Date.now() - startedAt
   await worker.terminate()
@@ -142,7 +144,7 @@ async function main() {
 
   const report = {
     ocr: {
-      image: 'public/samples/wechat-ocr-demo.png',
+      image: 'public/samples/wechat-ocr-demo-enhanced.png',
       elapsedMs,
       characterErrorRate: Number((cer * 100).toFixed(2)),
       characterAccuracy: Number(((1 - cer) * 100).toFixed(2)),
