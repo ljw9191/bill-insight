@@ -190,6 +190,7 @@
 # 健康检查：curl http://localhost:8080/health</div>
 <p>多阶段构建先在 Node 22 完成类型检查与生产构建，运行阶段由 <span class="code">server.mjs</span> 同源提供页面、密文保存接口与健康检查；账单密文持久化到命名卷 <span class="code">bill_insight_data</span>，容器重建不丢数据；默认本地模式不依赖数据库、外网 API 或云账号。备份：<span class="code">docker cp bill-insight:/app/data/vault.json ./vault-backup.json</span>。</p>
 <p class="note">实测结果（2026-11-19，Docker Engine 29.9.3 + 容器内 Node 22）：<span class="code">docker compose build</span> 成功；镜像 <b>293 MB</b>；<span class="code">up -d</span> 后约 16 秒容器进入 <b>healthy</b>；<span class="code">/health</span> 返回 <b>ok</b>、首页与 OCR 模型均 <b>200</b>；命名卷写入文件后重启容器仍可读回（持久化生效）；容器内设置 <span class="code">VAULT_TOKEN</span> 后接口鉴权为 无令牌 401 / 正确令牌 200 / 错误令牌 401。</p>
+<p>源码仓库（含完整提交历史）：<b>https://github.com/ljw9191/bill-insight</b> 。分支 <span class="code">main</span> 共 8 次提交，覆盖基线、收入构成、接口鉴权、量化验证、OCR 优化、精简文档与容器实测；仓库不含真实账单密文（<span class="code">data/</span> 已忽略）。</p>
 <div class="shots">
   <div class="shot" style="width:100%"><img src="screenshots/09-docker-container.png" alt="容器内运行的服务" style="max-height:none"><span>容器内运行的服务：http://localhost:8080 页面由容器同源提供</span></div>
 </div>
