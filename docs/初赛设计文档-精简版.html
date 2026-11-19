@@ -205,12 +205,22 @@
 <tr><td>边界说明</td><td>分类器是可解释关键词规则 + 个人反馈规则，不使用大模型，不宣称“AI 自动记账”；如后续接入大模型，仅用于分类兜底与洞察生成，并保留人工确认</td></tr>
 </table>
 
-<h2>十二、决赛计划</h2>
+<h2 class="pageBreak">十二、决赛计划</h2>
 <table>
 <thead><tr><th style="width:24%">时间</th><th style="width:46%">任务</th><th>产出</th></tr></thead>
 <tr><td>11-21 → 11-30</td><td>补充真实账单样本（≥30 张截图 / ≥200 条流水），重跑准确率统计</td><td>更新的验证数据与误差分析</td></tr>
 <tr><td>12-01 → 12-10</td><td>性能与安全加固、RPA 扩展设计、部署包整理</td><td>压测记录、独立部署包</td></tr>
 <tr><td>12-11 → 12-19</td><td>录制 5–8 分钟闭环演示视频、答辩材料</td><td>演示视频、答辩 PPT</td></tr>
+</table>
+
+<h3>附：初赛提交材料清单</h3>
+<table>
+<thead><tr><th style="width:26%">材料</th><th>位置 / 说明</th></tr></thead>
+<tr><td>设计文档（本文件）</td><td><span class="code">docs/初赛设计文档-精简版.pdf</span>，6 页正文 + 1 页计划，未超过 10 页上限</td></tr>
+<tr><td>量化验证数据</td><td><span class="code">docs/初步验证数据.md</span>，含 OCR 准确率、分类命中率、反哺机制与容器实测，均由仓库脚本实测生成</td></tr>
+<tr><td>源码与提交历史</td><td><span class="code">https://github.com/ljw9191/bill-insight</span>，main 分支 9 次提交</td></tr>
+<tr><td>独立部署</td><td><span class="code">Dockerfile</span> + <span class="code">docker-compose.yml</span>，镜像 293 MB，容器实测 healthy</td></tr>
+<tr><td>复现命令</td><td><span class="code">npx vite-node scripts/measure-metrics.ts</span>、<span class="code">docker compose -p billinsight up -d --build</span></td></tr>
 </table>
 
 </body>
