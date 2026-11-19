@@ -48,6 +48,12 @@ npm run preview
 docker compose up -d --build
 ```
 
+若目录名含中文导致 Compose 报 `project name must not be empty`，显式指定项目名：
+
+```bash
+docker compose -p billinsight up -d --build
+```
+
 打开 `http://localhost:8080`，选择“本地独立模式”。Node 服务同时提供页面、同源保存接口和本地保险箱，账单密文保存在 Docker 命名卷 `bill_insight_data` 中。备份数据：
 
 ```bash
@@ -66,7 +72,7 @@ VAULT_TOKEN=change-me docker compose up -d --build
 
 ```bash
 docker build -t bill-insight .
-docker run -d --name bill-insight -p 8080:80 --restart unless-stopped bill-insight
+docker run -d --name bill-insight -p 8080:8080 --restart unless-stopped bill-insight
 curl http://localhost:8080/health
 ```
 
