@@ -145,8 +145,8 @@
 <table>
 <thead><tr><th style="width:24%">阶段</th><th style="width:46%">主要工作</th><th>状态</th></tr></thead>
 <tr><td>11-13</td><td>仓库与基线提交、收入构成图、接口访问令牌、量化验证、OCR 消融实验与优化、精简文档初稿</td><td>已完成</td></tr>
-<tr><td>11-14 → 11-16</td><td>容器化实测、文档定稿与证据补齐</td><td>进行中</td></tr>
-<tr><td>11-17 → 11-20</td><td>材料定稿、自查与提交</td><td>计划</td></tr>
+<tr><td>11-17 → 11-19</td><td>容器化实测（镜像构建、健康检查、卷持久化、令牌鉴权）、文档定稿</td><td>已完成</td></tr>
+<tr><td>11-20</td><td>材料自查与提交</td><td>待办</td></tr>
 <tr><td>11-21 → 12-20</td><td>补真实样本、演示视频（5–8 分钟）、答辩材料</td><td>计划</td></tr>
 </table>
 <h3>8.4 主要难点与应对预案</h3>
@@ -189,7 +189,10 @@
 # 公网部署建议：VAULT_TOKEN=change-me docker compose up -d --build
 # 健康检查：curl http://localhost:8080/health</div>
 <p>多阶段构建先在 Node 22 完成类型检查与生产构建，运行阶段由 <span class="code">server.mjs</span> 同源提供页面、密文保存接口与健康检查；账单密文持久化到命名卷 <span class="code">bill_insight_data</span>，容器重建不丢数据；默认本地模式不依赖数据库、外网 API 或云账号。备份：<span class="code">docker cp bill-insight:/app/data/vault.json ./vault-backup.json</span>。</p>
-<p class="note">当前状态：构建脚本、健康检查与镜像分层已完成，Node 生产方式与浏览器流程均已实测；容器内的启动与闭环验证正在进行，完成后在本节补充实测截图与耗时。</p>
+<p class="note">实测结果（2026-11-19，Docker Engine 29.9.3 + 容器内 Node 22）：<span class="code">docker compose build</span> 成功；镜像 <b>293 MB</b>；<span class="code">up -d</span> 后约 16 秒容器进入 <b>healthy</b>；<span class="code">/health</span> 返回 <b>ok</b>、首页与 OCR 模型均 <b>200</b>；命名卷写入文件后重启容器仍可读回（持久化生效）；容器内设置 <span class="code">VAULT_TOKEN</span> 后接口鉴权为 无令牌 401 / 正确令牌 200 / 错误令牌 401。</p>
+<div class="shots">
+  <div class="shot" style="width:100%"><img src="screenshots/09-docker-container.png" alt="容器内运行的服务" style="max-height:none"><span>容器内运行的服务：http://localhost:8080 页面由容器同源提供</span></div>
+</div>
 
 <h2>十一、AI 服务集成说明</h2>
 <table>
@@ -205,7 +208,7 @@
 <table>
 <thead><tr><th style="width:24%">时间</th><th style="width:46%">任务</th><th>产出</th></tr></thead>
 <tr><td>11-21 → 11-30</td><td>补充真实账单样本（≥30 张截图 / ≥200 条流水），重跑准确率统计</td><td>更新的验证数据与误差分析</td></tr>
-<tr><td>12-01 → 12-10</td><td>容器化实测、性能与安全加固、RPA 扩展设计</td><td>部署截图、压测记录</td></tr>
+<tr><td>12-01 → 12-10</td><td>性能与安全加固、RPA 扩展设计、部署包整理</td><td>压测记录、独立部署包</td></tr>
 <tr><td>12-11 → 12-19</td><td>录制 5–8 分钟闭环演示视频、答辩材料</td><td>演示视频、答辩 PPT</td></tr>
 </table>
 
